@@ -8,66 +8,6 @@ const {
 const tryGet = require("try-get");
 
 
-function t(k, v) {
-  if (2 === arguments.length) {
-    t.r = t.r || {};
-    t.r[k] = v;
-    return;
-  }
-  t.r = t.r || [];
-  t.r.push(k);
-}
-
-const GunObjMap = function (l, c, _) {
-  var u,
-    i = 0,
-    x,
-    r,
-    ll,
-    lle,
-    f = "function" == typeof c;
-  t.r = u;
-  if (keys && obj_is(l)) {
-    ll = keys(l);
-    lle = true;
-  }
-  _ = _ || {};
-  if (list_is(l) || ll) {
-    x = (ll || l).length;
-    for (; i < x; i++) {
-      var ii = i + Type.list.index;
-      if (f) {
-        r = lle ? c.call(_, l[ll[i]], ll[i], t) : c.call(_, l[i], ii, t);
-        if (r !== u) {
-          return r;
-        }
-      } else {
-        //if(Type.test.is(c,l[i])){ return ii } // should implement deep equality testing!
-        if (c === l[lle ? ll[i] : i]) {
-          return ll ? ll[i] : ii;
-        } // use this for now
-      }
-    }
-  } else {
-    for (i in l) {
-      if (f) {
-        if (obj_has(l, i)) {
-          r = _ ? c.call(_, l[i], i, t) : c(l[i], i, t);
-          if (r !== u) {
-            return r;
-          }
-        }
-      } else {
-        //if(a.test.is(c,l[i])){ return i } // should implement deep equality testing!
-        if (c === l[i]) {
-          return i;
-        } // use this for now
-      }
-    }
-  }
-  return f ? t.r : Type.list.index ? 0 : -1;
-};
-
 module.exports = function graphqlGun(query, gun) {
   gun = gun || Gun();
   let resultValue = {};
