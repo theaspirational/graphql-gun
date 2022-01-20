@@ -3,44 +3,70 @@ const graphql = require("graphql-anywhere").default;
 const {
   thunkish,
   deferrableOrImmediate,
-  arrayOrDeferrable
+  arrayOrDeferrable,
 } = require("./async");
 const tryGet = require("try-get");
 
+
+function t(k, v) {
+  if (2 === arguments.length) {
+    t.r = t.r || {};
+    t.r[k] = v;
+    return;
+  }
+  t.r = t.r || [];
+  t.r.push(k);
+}
+
 const GunObjMap = function (l, c, _) {
-			var u, i = 0, x, r, ll, lle, f = 'function' == typeof c;
-			t.r = u;
-			if (keys && obj_is(l)) {
-				ll = keys(l); lle = true;
-			}
-			_ = _ || {};
-			if (list_is(l) || ll) {
-				x = (ll || l).length;
-				for (; i < x; i++) {
-					var ii = (i + Type.list.index);
-					if (f) {
-						r = lle ? c.call(_, l[ll[i]], ll[i], t) : c.call(_, l[i], ii, t);
-						if (r !== u) { return r }
-					} else {
-						//if(Type.test.is(c,l[i])){ return ii } // should implement deep equality testing!
-						if (c === l[lle ? ll[i] : i]) { return ll ? ll[i] : ii } // use this for now
-					}
-				}
-			} else {
-				for (i in l) {
-					if (f) {
-						if (obj_has(l, i)) {
-							r = _ ? c.call(_, l[i], i, t) : c(l[i], i, t);
-							if (r !== u) { return r }
-						}
-					} else {
-						//if(a.test.is(c,l[i])){ return i } // should implement deep equality testing!
-						if (c === l[i]) { return i } // use this for now
-					}
-				}
-			}
-			return f ? t.r : Type.list.index ? 0 : -1;
-		}
+  var u,
+    i = 0,
+    x,
+    r,
+    ll,
+    lle,
+    f = "function" == typeof c;
+  t.r = u;
+  if (keys && obj_is(l)) {
+    ll = keys(l);
+    lle = true;
+  }
+  _ = _ || {};
+  if (list_is(l) || ll) {
+    x = (ll || l).length;
+    for (; i < x; i++) {
+      var ii = i + Type.list.index;
+      if (f) {
+        r = lle ? c.call(_, l[ll[i]], ll[i], t) : c.call(_, l[i], ii, t);
+        if (r !== u) {
+          return r;
+        }
+      } else {
+        //if(Type.test.is(c,l[i])){ return ii } // should implement deep equality testing!
+        if (c === l[lle ? ll[i] : i]) {
+          return ll ? ll[i] : ii;
+        } // use this for now
+      }
+    }
+  } else {
+    for (i in l) {
+      if (f) {
+        if (obj_has(l, i)) {
+          r = _ ? c.call(_, l[i], i, t) : c(l[i], i, t);
+          if (r !== u) {
+            return r;
+          }
+        }
+      } else {
+        //if(a.test.is(c,l[i])){ return i } // should implement deep equality testing!
+        if (c === l[i]) {
+          return i;
+        } // use this for now
+      }
+    }
+  }
+  return f ? t.r : Type.list.index ? 0 : -1;
+};
 
 module.exports = function graphqlGun(query, gun) {
   gun = gun || Gun();
@@ -53,7 +79,7 @@ module.exports = function graphqlGun(query, gun) {
       index: indexInList,
       ref: parentRef,
       path,
-      chain
+      chain,
     } = container;
     let ref = parentRef;
     let subscribe =
@@ -65,8 +91,8 @@ module.exports = function graphqlGun(query, gun) {
         ref[key] = chain;
         return chain;
       } else {
-        return thunkish(resolve => {
-          const updater = val => {
+        return thunkish((resolve) => {
+          const updater = (val) => {
             if (!!val && val[key]) {
               ref[key] = val[key];
               resolve(val[key]);
@@ -89,10 +115,10 @@ module.exports = function graphqlGun(query, gun) {
       const keyValueSet = {};
       const resultSet = {};
 
-      const t = thunkish(function(rerunChild) {
-        const updater = function(data, _key, at) {
+      const t = thunkish(function (rerunChild) {
+        const updater = function (data, _key, at) {
           var gunRef = this; // also `at.gun`
-          GunObjMap(data, function(val, field) {
+          GunObjMap(data, function (val, field) {
             // or a for in
             if (field === "_") return;
             keyValueSet[field] = keyValueSet[field] || {};
@@ -100,7 +126,7 @@ module.exports = function graphqlGun(query, gun) {
               chain: gunRef.get(field),
               subscribe,
               ref: keyValueSet[field],
-              path: [...path, key, field]
+              path: [...path, key, field],
             };
           });
           ref.splice(0, ref.length, ...Object.values(keyValueSet));
@@ -115,7 +141,7 @@ module.exports = function graphqlGun(query, gun) {
         chain: chain.get(key),
         subscribe,
         path: [...path, key],
-        ref: ref[key]
+        ref: ref[key],
       };
     }
   };
@@ -128,27 +154,27 @@ module.exports = function graphqlGun(query, gun) {
     null,
     {
       deferrableOrImmediate,
-      arrayOrDeferrable
+      arrayOrDeferrable,
     }
   );
-  const thunk = thunkish(function(triggerUpdate) {
+  const thunk = thunkish(function (triggerUpdate) {
     triggerUpdate(resultValue);
     if (graphqlOut.isThunk) {
-      graphqlOut(function(actualRes) {
+      graphqlOut(function (actualRes) {
         triggerUpdate(resultValue); // TODO: Figure out how to use actualRes instead of tracking resultValue
       });
     }
   });
   const result = thunk.toPromiseFactory()();
   result.next = thunk.toPromiseFactory();
-  result[Symbol.asyncIterator] = function() {
+  result[Symbol.asyncIterator] = function () {
     const factory = thunk.toPromiseFactory();
     return {
       next: () =>
-        factory().then(value => ({
+        factory().then((value) => ({
           value,
-          done: false
-        }))
+          done: false,
+        })),
     };
   };
   result[Symbol.iterator] = result[Symbol.asyncIterator]; // TODO: Depricate this usage
