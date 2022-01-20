@@ -58,7 +58,7 @@ module.exports = function graphqlGun(query, gun) {
       const t = thunkish(function (rerunChild) {
         const updater = function (data, _key, at) {
           var gunRef = this; // also `at.gun`
-          GunObjMap(data, function (val, field) {
+          Gun.obj.map(data, function (val, field) {
             // or a for in
             if (field === "_") return;
             keyValueSet[field] = keyValueSet[field] || {};
